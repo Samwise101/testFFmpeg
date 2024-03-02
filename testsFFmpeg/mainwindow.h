@@ -33,10 +33,14 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void loadVideo(const char *path, int stopAtOriginalVideoFrame, int outputVideoFps);
+    void loadVideo(const char *path);
+    void mergeVideoStreams(int stopAtOriginalVideoFrame, int outputVideoFp, const char* outPath);
 
+    std::vector<AVStream> videoStreamIndex1;
     AVFormatContext *formatCtx = nullptr;
     AVCodec* codec = nullptr;
+    AVCodecContext* codec_ctx = nullptr;
+    AVCodecContext* codec_ctx2 = nullptr;
 
 private:
     Ui::MainWindow *ui;

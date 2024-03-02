@@ -7,7 +7,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    loadVideo("C:/Users/u/Documents/Qt/GS010001.360", 40, 5);
+    loadVideo("C:/Users/u/Documents/Qt/GS010001.360");
+    mergeVideoStreams(40, 5, "C:/Users/u/Documents/Qt/video.avi");
 }
 
 MainWindow::~MainWindow()
@@ -15,7 +16,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::loadVideo(const char *path, int stopAtOriginalVideoFrame, int outputVideoFps)
+void MainWindow::loadVideo(const char *path)
 {
 
     int ret = avformat_open_input(&formatCtx, path, nullptr, nullptr);
@@ -30,7 +31,6 @@ void MainWindow::loadVideo(const char *path, int stopAtOriginalVideoFrame, int o
         return;
     }
 
-    std::vector<AVStream> videoStreamIndex1{};
     for ( int i = 0; i < formatCtx->nb_streams; i++) {
         if(formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         {
@@ -38,10 +38,9 @@ void MainWindow::loadVideo(const char *path, int stopAtOriginalVideoFrame, int o
         }
     }
 
-
     AVCodecParameters* codecpar = formatCtx->streams[videoStreamIndex1.at(0).index]->codecpar;
     const AVCodec* codec = avcodec_find_decoder(codecpar->codec_id);
-    AVCodecContext* codec_ctx = avcodec_alloc_context3(codec);
+    codec_ctx = avcodec_alloc_context3(codec);
     avcodec_parameters_to_context(codec_ctx, codecpar);
 
     if (avcodec_open2(codec_ctx, codec, nullptr) < 0) {
@@ -51,14 +50,17 @@ void MainWindow::loadVideo(const char *path, int stopAtOriginalVideoFrame, int o
 
     AVCodecParameters* codecpar2 = formatCtx->streams[videoStreamIndex1.at(1).index]->codecpar;
     const AVCodec* codec2 = avcodec_find_decoder(codecpar2->codec_id);
-    AVCodecContext* codec_ctx2 = avcodec_alloc_context3(codec2);
+    codec_ctx2 = avcodec_alloc_context3(codec2);
     avcodec_parameters_to_context(codec_ctx2, codecpar2);
 
     if (avcodec_open2(codec_ctx2, codec2, nullptr) < 0) {
         std::cerr << "Could not open codec" << std::endl;
         return;
     }
+}
 
+void MainWindow::mergeVideoStreams(int stopAtOriginalVideoFrame, int outputVideoFps, const char* outPath)
+{
     AVFrame* frame = av_frame_alloc();
     AVPacket packet;
     AVPacket packet2;
@@ -71,6 +73,7 @@ void MainWindow::loadVideo(const char *path, int stopAtOriginalVideoFrame, int o
     bool secondFrame = false;
 
     int i = 0;
+    int ret;
     std::vector<cv::Mat> imageFrames{};
 
     av_init_packet(&packet);
@@ -187,7 +190,7 @@ void MainWindow::loadVideo(const char *path, int stopAtOriginalVideoFrame, int o
     cv::destroyAllWindows();
 
     cv::Size frame_size(imageFrames[0].cols, imageFrames[0].rows);
-    cv::VideoWriter out_capture("C:/Users/u/Documents/Qt/video.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), outputVideoFps, frame_size, true);
+    cv::VideoWriter out_capture(outPath, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), outputVideoFps, frame_size, true);
 
     if (out_capture.isOpened() == false)
     {
