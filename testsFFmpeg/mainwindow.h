@@ -33,7 +33,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void loadVideo(const char *path, int stopAtFrame, int fps);
+    void loadVideo(const char *path, int stopAtOriginalVideoFrame, int outputVideoFps);
 
     AVFormatContext *formatCtx = nullptr;
     AVCodec* codec = nullptr;

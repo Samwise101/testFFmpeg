@@ -15,7 +15,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::loadVideo(const char *path, int stopAtFrame, int fps)
+void MainWindow::loadVideo(const char *path, int stopAtOriginalVideoFrame, int outputVideoFps)
 {
 
     int ret = avformat_open_input(&formatCtx, path, nullptr, nullptr);
@@ -169,9 +169,9 @@ void MainWindow::loadVideo(const char *path, int stopAtFrame, int fps)
             imageFrames.push_back(frameConcat);
             firstFrame = false;
             secondFrame = false;
-            std::cout << "IMA HERE!" << std::endl;
+            std::cout << "IAM HERE!" << std::endl;
 
-            if(i >= stopAtFrame*2){
+            if(i >= stopAtOriginalVideoFrame*2){
                 av_packet_unref(&packet);
                 break;
             }
@@ -187,7 +187,7 @@ void MainWindow::loadVideo(const char *path, int stopAtFrame, int fps)
     cv::destroyAllWindows();
 
     cv::Size frame_size(imageFrames[0].cols, imageFrames[0].rows);
-    cv::VideoWriter out_capture("C:/Users/u/Documents/Qt/video.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), fps, frame_size, true);
+    cv::VideoWriter out_capture("C:/Users/u/Documents/Qt/video.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), outputVideoFps, frame_size, true);
 
     if (out_capture.isOpened() == false)
     {
