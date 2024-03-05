@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     loadVideo("C:/Users/u/Documents/Qt/GS010001.360");
-    mergeVideoStreams(40, 5, "C:/Users/u/Documents/Qt/video.avi");
+    mergeVideoStreams(80, 5, "C:/Users/u/Documents/Qt/video.avi");
 }
 
 MainWindow::~MainWindow()
@@ -74,7 +74,17 @@ void MainWindow::mergeVideoStreams(int stopAtOriginalVideoFrame, int outputVideo
 
     int i = 0;
     int ret;
-    std::vector<cv::Mat> imageFrames{};
+   // std::vector<cv::Mat> imageFrames{};
+
+
+    cv::Size frame_size(4096, 5440);
+    cv::VideoWriter out_capture(outPath, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), outputVideoFps, frame_size, true);
+
+    if (out_capture.isOpened() == false)
+    {
+        std::cout << "Cannot save the video to a file" << std::endl;
+        return;
+    }
 
     av_init_packet(&packet);
 
@@ -168,11 +178,15 @@ void MainWindow::mergeVideoStreams(int stopAtOriginalVideoFrame, int outputVideo
 
             cv::imwrite("frameConcat.jpg", frameConcat);
             cv::imshow("frame2",frameConcat);
-            cv::waitKey(20);
-            imageFrames.push_back(frameConcat);
+            //cv::waitKey(20);
             firstFrame = false;
             secondFrame = false;
             std::cout << "IAM HERE!" << std::endl;
+
+
+           // std::cout << "Size: " << frame_size << std::endl;
+
+            out_capture.write(frameConcat);
 
             if(i >= stopAtOriginalVideoFrame*2){
                 av_packet_unref(&packet);
@@ -189,18 +203,6 @@ void MainWindow::mergeVideoStreams(int stopAtOriginalVideoFrame, int outputVideo
 
     cv::destroyAllWindows();
 
-    cv::Size frame_size(imageFrames[0].cols, imageFrames[0].rows);
-    cv::VideoWriter out_capture(outPath, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), outputVideoFps, frame_size, true);
-
-    if (out_capture.isOpened() == false)
-    {
-        std::cout << "Cannot save the video to a file" << std::endl;
-        return;
-    }
-
-    for(cv::Mat image : imageFrames){
-        out_capture.write(image);
-    }
 
     std::cout << "Successfully created video from image frames" << std::endl;
 }
